@@ -1,10 +1,36 @@
 import {test, expect} from '@playwright/test';
+/**
+ * Test Case:
+ *
+ * Open Airalo's Website:
+ * - Launch a browser and navigate to Airalo's website.
+ *
+ * Search for Japan:
+ * - In the search field on the home page, type "Japan" and select the "Japan" destination
+ *   from the “Local” section in the autocomplete options.
+ *
+ * Select an eSIM Package:
+ * - On the next page, choose the first eSIM package.
+ * - Click on "Buy Now."
+ *
+ * Verify Package Details:
+ * - In the popup that appears, ensure the following details are accurate:
+ *   - Title: Moshi Moshi
+ *   - Coverage: Japan
+ *   - Data: 1 GB
+ *   - Validity: 7 days
+ *   - Price: $4.50
+ */
 
-function getXPathSelector(dataTestId) {
+function getLocator(page, dataTestId) {
     if (!dataTestId) {
         throw new Error('dataTestId is required and must be a non-empty string.');
     }
-    return `xpath=//*[@data-testid="${dataTestId}"]`;
+    return page.locator(`[data-testid="${dataTestId}"]`);
+}
+
+async function getText(locator) {
+    return await locator.evaluate(el => el.textContent.replace(/\s+/g, ' ').trim());
 }
 
 const xPathPackageDetail = 'xpath=//*[@data-testid="package-detail"]';
@@ -23,28 +49,33 @@ const testPackageDetailData = [
 
 test.describe('UI: Verify Japan first local plan', () => {
     let page;
+    const mainUrl = 'https://www.airalo.com/';
     test.beforeAll(async ({browser}) => {
-        const context = await browser.newContext();
-        page = await context.newPage();
+        await test.step('Open ' + mainUrl, async () => {
+            const context = await browser.newContext();
+            page = await context.newPage();
 
-        await page.goto('https://www.airalo.com/');
+            await page.goto(mainUrl);
+        });
 
-        await page.fill(getXPathSelector('search-input'), 'Japan');
+        await test.step('Search and open "Japan" local plan', async () => {
+            await getLocator(page, 'search-input').fill('Japan');
+            await getLocator(page, 'Japan-name').click();
+        });
 
-        await page.locator(getXPathSelector('Japan-name')).click();
+        await test.step('Open the first package with option "BUY NOW"', async () => {
+            await expect(getLocator(page, 'store-title')).toHaveText("Japan");
 
-        await expect(page.locator(getXPathSelector('store-title'))).toHaveText("Japan");
+            await page.locator('xpath=//*[@data-testid="esim-button"]/button[text()="BUY NOW"]').first().click();
+        });
+        await expect(getLocator(page, 'buy-button'))
+            .toHaveText("BUY", 'Wait till package information will be appear');
 
-        await page.locator('xpath=//*[@data-testid="esim-button"]/button[text()="BUY NOW"]').first().click();
-
-        await expect(page.locator(getXPathSelector('buy-button'))).toHaveText("BUY");
     });
-    for (const data of testPackageDetailData) {
-        test(`Verify ${data.field} for Japan local plan`, async () => {
 
-            //await expect(page.locator(data.xPath)).toHaveText(data.expected);
-            const elementText = await page.locator(data.xPath)
-                .evaluate(el => el.textContent.replace(/\s+/g, ' ').trim());
+    for (const data of testPackageDetailData) {
+        test(`Field ${data.field} has value "${data.expected}"`, async () => {
+            const elementText = await getText(page.locator(data.xPath));
             expect(elementText).toBe(data.expected);
         });
     }

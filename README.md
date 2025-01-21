@@ -37,6 +37,11 @@ To set up the project locally, follow these steps:
    npx playwright install
    ```
 
+4. Install [dotenv](https://github.com/motdotla/dotenv):
+   ```bash
+   npm install dotenv
+   ```
+
 ---
 
 ## Running the Tests
