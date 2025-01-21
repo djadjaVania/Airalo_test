@@ -86,7 +86,3 @@ To run tests in debug mode:
 npx playwright test --debug
 ```
 
----
-
-Feel free to contribute or raise issues to improve the project!
-
