@@ -45,7 +45,7 @@ test.describe('API: Verify POST Submit Order', () => {
 
         await test.step('Send POST request to ' + API_ROUTES.ORDERS, async () => {
             let data = {
-                package_id: 'kallur-digital-7days-1gb', // 'merhaba-7days-1gb',
+                package_id: 'merhaba-7days-1gb',
                 quantity: '6',
                 type: 'sim',
                 description: 'Example description to identify the order',
